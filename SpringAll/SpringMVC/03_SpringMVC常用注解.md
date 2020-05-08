@@ -1,6 +1,6 @@
-### SpringMVC 常用注解
+### `SpringMVC `常用注解
 
-> 介绍 SpringMVC 的常用注解
+> 介绍 `SpringMVC `的常用注解
 
 #### 控制器组件注解：@Controller 
 
@@ -27,11 +27,11 @@ public class HelloController {
 `SpringMVC`中用于参数绑定的注解有很多，都在`org.springframework.web.bind.annotation`包中，根据它们处理`request`的不同内容部分可以分为6类：
 
 - 处理请求参数和内容部分的注解
-  - @RequestMapping
-  - @GetMapping
-  - @PostMapping
-  - @PutMapping
-  - @DeleteMapping
+  - `@RequestMapping`
+  - `@GetMapping`
+  - `@PostMapping`
+  - `@PutMapping`
+  - `@DeleteMapping`
   - @PatchMapping
   - @RequestParam
   - @RequestBody
@@ -58,7 +58,7 @@ public class HelloController {
 - 绑定表单数据的注解
   - InitBinder (常用于数据类型转换)
 
-#### @RequestParam
+#### `@RequestParam`
 
 `@RequestParam`用于绑定`Servlet`请求参数（查询参数，表单参数)至`controller`形参，简单示例：
 
@@ -98,7 +98,7 @@ public String getBook(@RequestParam(required = false) String id){
 //当没有指定参数时，id绑定为null
 ```
 
-在JDK8+中，我们也可以使用`java.util.Optional` 去包装形参，从而实现可选，示例如下：
+在`JDK8+`中，我们也可以使用`java.util.Optional` 去包装形参，从而实现可选，示例如下：
 
 ```java
 @ResponseBody
@@ -122,7 +122,65 @@ public String getBook(@RequestParam(defaultValue = "C") String bookName){
 //output : Name: C
 ```
 
+`@RequestParam`也允许我们通过 `Map`或`MultiValueMap`去绑定多个参数，如果没有在注解中指定参数命名，那么默认会绑定所有，并会将请求中每一个参数的名称和值填充到`Map`中，示例如下：
 
+```java
+//使用Map,同名参数只会绑定第一个参数的值
+@GetMapping(value = "/useMap")
+public @ResponseBody Map<String,String> useMap(@RequestParam Map<String,String> map){
+    return map;
+}
+//url : http://localhost:8080/useMap?id=001&name=Java&name=C
+//output : 
+{
+    "id": "001", 
+    "name": "Java"
+}     
+
+//使用MultiValueMap,同名参数会绑定所有值并填充到`List`中，由于默认输出MultiValueMap格式并不是标准Json格式，所以我这里做了转换
+@GetMapping(value = "/useMultiValueMap")
+public @ResponseBody Map<String,List<String>> useMultiValueMap(@RequestParam MultiValueMap<String,String> map){
+    Map<String,List<String>> responseMap = new HashMap<>();
+  	for(Map.Entry<String, List<String>> entry : map.entrySet()){
+  		responseMap.put(entry.getKey(),entry.getValue());
+  	}
+  	return responseMap;
+}
+//url : http://localhost:8080/useMultiValueMap?id=001&name=Java&name=C
+//output : 
+{
+    "name": [
+        "Java",
+        "Spring"
+    ],
+    "id": [
+        "001"
+    ]
+}
+```
+
+使用`Map`和`MultiValueMap`去绑定参数时，它们之间有些不同：**对于同名参数，`Map`只会绑定第一个的值，而`MultiValueMap`则会绑定所有值并填充到`List`中**，这是由于它们的数据结构决定的，`MultiValueMap`结构如下：
+
+```java
+public interface MultiValueMap<K, V> extends Map<K, List<V>> {....}
+```
+
+`@RequestParam`也允许我们将指定参数的多个值绑定到一个列表，通过`List`，多个值使用`,` 分隔或定义多次，示例如下：
+
+```java
+@GetMapping(value = "/useList")
+public @ResponseBody List<String> useList(@RequestParam List<String> id){
+	return id;
+}
+//url : http://localhost:8080/useMultiValueMap?id=1,2,3
+//url : http://localhost:8080/useMultiValueMap?id=1&id=2&id=3
+//如上两个url将产生相同的结果，output : 
+[
+    "1",
+    "2",
+    "3"
+]
+```
 
 
 
