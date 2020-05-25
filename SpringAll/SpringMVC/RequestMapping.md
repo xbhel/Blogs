@@ -150,5 +150,68 @@ public String setMultiHeader() {
 
 #### `@RequestMapping - Consumes & Produces `
 
+`controller`方法产生`media type(媒体类型)`映射特别重要的——我们可以使用上面介绍`@RequestMapping`的`headers`属性，通过指定`Accept`标头来产生一个`media type`请求映射，示例如下：
 
+``` java
+//使用Accept标头来指定media type,前端HTTP请求中需包含Accept: application/json
+@ResponseBody
+@RequestMapping(
+      value = "/setHeaderAcceptMediaType",
+      method = RequestMethod.GET,
+      headers = "Accept=application/json"
+)
+public String setHeaderAcceptMediaType() {
+    return "setHeaderAcceptMediaType";
+}
+//使用Postman测试，Header栏中添加 Accept: application/json
+//url : http://127.0.0.1:8080/setHeaderAcceptMediaType
+//output : setHeaderAcceptMediaType
+```
 
+- `Accept`请求属性：指定返回的内容类型，客户端接收响应消息的类型
+
+从`Spring 3.1`开始，`@RequestMapping`添加了`consumes`和`produces`属性专门用于产生`media type`映射，示例如下：
+
+- `consumes`：指定`web request`的提交内容类型(`Content-Type`)
+- `produces`：指定返回的内容类型，客户端接收响应消息的类型(返回的内容类型必须是`Accept`请求头中包含的类型)
+
+```java
+@ResponseBody
+@RequestMapping(
+      value = "/setMediaByProducesAttr",
+      method = RequestMethod.GET,
+      consumes = "application/json"
+)
+public String setMediaByConsumesAttr() {
+    return "setMediaByConsumesAttr";
+}
+
+@ResponseBody
+@RequestMapping(
+      value = "/setMediaByProducesAttr",
+      method = RequestMethod.GET,
+      produces = "application/json"
+)
+public String setMediaByProducesAttr() {
+    return "setMediaByProducesAttr";
+}
+```
+
+此外，从`Spring 3.1`开始，使用`headers`属性的方式去产生`media type`的映射方式将自动转换为`consumers & produces`机制，因此两者方式产生的结果是相同的，同样`produces`和`consumers `属性也是数组类型，即可以指定多个值，示例如下：
+
+``` java
+@RequestMapping(
+      value = "/setMultiMediaType", 
+      produces = {"application/json","application/xml"}, 
+      method = RequestMethod.GET)
+@ResponseBody
+public String setMultiMediaType(){
+    return "setMultiMediaType";
+}
+```
+
+注意：不要在相同映射同时使用`headers`属性和`consumers & produces`属性来产生`media type`映射，会产生歧义。
+
+还需要注意的一点是，关于`consumers & produces`机制——当我们在类级别指定了`consumers & produces`属性时，方法级别的不是对类级别进行补充，而是覆盖，这一点和其他大多数注解不同。
+
+#### `@RequestMapping 与 Path Variables`
